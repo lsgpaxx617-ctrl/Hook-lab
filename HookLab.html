@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HookLab – Viral hooks for short-form video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  fontFamily: { sans: ['"Bricolage Grotesque"','system-ui','sans-serif'] },
+  colors: { ink:'#120F1F', panel:'#1B1730', line:'#2D2749', mute:'#9A93B8', hot:'#FF4D6D', gold:'#FFC247' }
+}}};
+</script>
+<style>
+  :root { color-scheme: dark; box-sizing: border-box; padding-top: env(safe-area-inset-top,0px); padding-bottom: env(safe-area-inset-bottom,0px); }
+  html, body { background:#120F1F; color:#F3EFFF; }
+  .hook-card { transition: border-color .15s, background .15s; }
+  .hook-card.active { border-color:#FF4D6D; background:#241d3d; }
+  .caption { text-shadow: 0 2px 10px rgba(0,0,0,.85); }
+  select { background-image:none; }
+  :focus-visible { outline:2px solid #FFC247; outline-offset:2px; }
+  @keyframes pop { from { transform:scale(.96); opacity:.4 } to { transform:scale(1); opacity:1 } }
+  .pop { animation: pop .18s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .pop { animation:none } }
+</style>
+</head>
+<body class="font-sans min-h-screen">
+
+<div class="flex flex-col lg:flex-row min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="lg:w-60 shrink-0 border-b lg:border-b-0 lg:border-r border-line bg-panel/60 p-4 lg:p-5 flex lg:flex-col items-center lg:items-stretch gap-4 lg:gap-8">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-lg bg-hot grid place-items-center font-extrabold text-lg">H</div>
+      <div class="font-extrabold text-xl tracking-tight">HookLab</div>
+    </div>
+    <nav class="flex lg:flex-col gap-1.5 ml-auto lg:ml-0 text-sm font-semibold" role="tablist">
+      <button id="nav-gen" role="tab" class="nav-btn flex items-center gap-2 px-3 py-2 rounded-lg text-left" data-tab="gen">
+        <span>⚡</span> Hook generator
+      </button>
+      <button id="nav-pro" role="tab" class="nav-btn flex items-center gap-2 px-3 py-2 rounded-lg text-left" data-tab="pro">
+        <span>🔒</span> Pro templates
+      </button>
+    </nav>
+    <div class="hidden lg:block mt-auto rounded-xl border border-line p-3.5 text-sm">
+      <p class="font-semibold">Hooks decide the watch.</p>
+      <p class="text-mute mt-1">Most viewers swipe in the first 2 seconds. Test several openers per video.</p>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+
+    <!-- Generator tab -->
+    <section id="tab-gen">
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Stop the scroll in 2 seconds.</h1>
+      <p class="text-mute mt-2 max-w-xl">Pick your niche and platform, then generate five hooks built to hold viewers past the first line.</p>
+
+      <div class="mt-6 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-8">
+        <div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <label class="block">
+              <span class="text-sm font-semibold text-mute">Content niche</span>
+              <select id="niche" class="mt-1.5 w-full rounded-lg bg-panel border border-line px-3 py-3 font-semibold">
+                <option value="gaming">Gaming</option>
+                <option value="money">Money / Business</option>
+                <option value="fitness">Fitness</option>
+                <option value="story">Storytelling / Drama</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-sm font-semibold text-mute">Target platform</span>
+              <select id="platform" class="mt-1.5 w-full rounded-lg bg-panel border border-line px-3 py-3 font-semibold">
+                <option value="tiktok">TikTok</option>
+                <option value="shorts">YouTube Shorts</option>
+              </select>
+            </label>
+          </div>
+
+          <button id="gen" class="mt-4 w-full sm:w-auto px-7 py-3.5 rounded-lg bg-hot hover:bg-[#ff6a85] text-white font-extrabold text-base transition-colors">
+            Generate viral hooks
+          </button>
+
+          <div id="results" class="mt-6 space-y-3" aria-live="polite">
+            <div class="rounded-xl border border-dashed border-line p-8 text-center text-mute">
+              Your hooks will appear here. Choose a niche and tap <span class="text-white font-semibold">Generate viral hooks</span>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone preview -->
+        <div class="xl:sticky xl:top-8 self-start justify-self-center w-full max-w-[340px]">
+          <p class="text-sm font-semibold text-mute mb-3">Live preview</p>
+          <div class="mx-auto w-[260px] h-[520px] rounded-[38px] bg-black border-[7px] border-[#2a2540] relative overflow-hidden shadow-2xl">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-black rounded-b-2xl z-20"></div>
+            <!-- fake video -->
+            <div class="absolute inset-0 bg-gradient-to-b from-[#3b2a6b] via-[#1d1636] to-[#0b0816]"></div>
+            <div class="absolute inset-0 opacity-30" style="background:radial-gradient(circle at 30% 40%,#ff4d6d 0,transparent 45%),radial-gradient(circle at 75% 65%,#4dc3ff 0,transparent 40%)"></div>
+
+            <!-- top tabs -->
+            <div id="pv-top" class="absolute top-7 inset-x-0 flex justify-center gap-4 text-[11px] font-semibold z-10 caption">
+              <span class="text-white/60">Following</span><span class="text-white border-b-2 border-white pb-0.5">For You</span>
+            </div>
+
+            <!-- hook text -->
+            <div class="absolute inset-x-0 top-[26%] px-5 z-10 text-center">
+              <p id="pv-hook" class="caption pop font-extrabold text-white text-[19px] leading-tight">Generate hooks, then tap one to preview it here.</p>
+            </div>
+
+            <!-- right rail -->
+            <div class="absolute right-2 bottom-20 flex flex-col items-center gap-3.5 z-10 text-[10px] font-semibold caption">
+              <div class="w-9 h-9 rounded-full bg-white/80 border-2 border-white"></div>
+              <div class="text-center"><div class="text-xl leading-none">♥</div><span id="pv-likes">1.2M</span></div>
+              <div class="text-center"><div class="text-xl leading-none">💬</div><span id="pv-cmts">8,431</span></div>
+              <div class="text-center"><div class="text-xl leading-none" id="pv-icon3">🔖</div><span id="pv-l3">Save</span></div>
+              <div class="text-center"><div class="text-xl leading-none">↪</div><span>Share</span></div>
+            </div>
+
+            <!-- bottom caption -->
+            <div class="absolute left-3 right-14 bottom-9 z-10 text-[11px] caption">
+              <p class="font-bold" id="pv-user">@yourhandle</p>
+              <p class="text-white/85 mt-0.5">New video #fyp #viral</p>
+              <p class="text-white/70 mt-1">♫ original sound</p>
+            </div>
+            <div class="absolute bottom-0 inset-x-0 h-1 bg-white/20 z-10"><div class="h-full w-1/3 bg-white/80"></div></div>
+          </div>
+          <p class="text-xs text-mute text-center mt-3" id="pv-note">TikTok layout</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pro tab -->
+    <section id="tab-pro" class="hidden">
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Pro templates</h1>
+      <p class="text-mute mt-2 max-w-xl">Proven hook formulas, retention scripts and caption structures for every niche.</p>
+
+      <div class="relative mt-6 max-w-3xl">
+        <div class="grid sm:grid-cols-2 gap-3 blur-[5px] select-none pointer-events-none" aria-hidden="true">
+          <div class="rounded-xl bg-panel border border-line p-4"><p class="font-bold">The 3-beat open</p><p class="text-mute text-sm mt-1">Pattern break, promise, proof in under 3 seconds.</p></div>
+          <div class="rounded-xl bg-panel border border-line p-4"><p class="font-bold">Open-loop story script</p><p class="text-mute text-sm mt-1">Hold the payoff until the final second.</p></div>
+          <div class="rounded-xl bg-panel border border-line p-4"><p class="font-bold">Comment-bait closers</p><p class="text-mute text-sm mt-1">Endings that push replies and rewatches.</p></div>
+          <div class="rounded-xl bg-panel border border-line p-4"><p class="font-bold">120 niche hook swipe file</p><p class="text-mute text-sm mt-1">Fill-in-the-blank hooks, sorted by style.</p></div>
+          <div class="rounded-xl bg-panel border border-line p-4"><p class="font-bold">Retention edit checklist</p><p class="text-mute text-sm mt-1">Cuts, captions and zooms that keep viewers.</p></div>
+          <div class="rounded-xl bg-panel border border-line p-4"><p class="font-bold">Caption &amp; hashtag formulas</p><p class="text-mute text-sm mt-1">Reusable for TikTok and Shorts.</p></div>
+        </div>
+
+        <div class="absolute inset-0 grid place-items-center p-4">
+          <div class="w-full max-w-sm rounded-2xl bg-ink/95 border border-line p-6 text-center shadow-2xl">
+            <div class="text-3xl">🔒</div>
+            <h2 class="mt-2 text-xl font-extrabold">Pro templates are locked</h2>
+            <p class="text-mute text-sm mt-2">One payment, lifetime access. All current templates and every future update.</p>
+            <a id="checkout" href="https://buy.stripe.com/your-checkout-link" target="_blank" rel="noopener"
+               class="mt-5 block w-full rounded-lg bg-gold text-ink font-extrabold py-3.5 hover:brightness-110 transition">
+              Unlock Lifetime Access - $15
+            </a>
+            <p class="text-xs text-mute mt-3">Secure checkout. Instant access after payment.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white text-ink font-semibold text-sm px-4 py-2 rounded-full opacity-0 pointer-events-none transition-opacity z-50">Copied</div>
+
+<script>
+// Replace with your real payment link (Stripe Payment Link, Lemon Squeezy, Gumroad, etc.)
+const CHECKOUT_URL = "https://buy.stripe.com/your-checkout-link";
+document.getElementById('checkout').href = CHECKOUT_URL;
+
+const HOOKS = {
+  gaming: [
+    ["Curiosity","Nobody told you this setting is secretly ruining your aim."],
+    ["Contrarian","Stop using the meta loadout. Here’s why it’s holding you back."],
+    ["Proof","I went from Bronze to Diamond in 7 days using only this."],
+    ["Challenge","I tried beating the hardest boss without taking a single hit."],
+    ["Warning","Pro players hide this trick. Watch before the next patch."],
+    ["Curiosity","This 10-second glitch is breaking the whole game right now."],
+    ["Story","My squad kicked me for this play. Then it won us the match."],
+    ["Value","3 tiny changes that instantly fix your recoil."],
+    ["Contrarian","Your sensitivity is wrong, and it’s not your fault."],
+    ["Proof","I tested every weapon so you don’t waste your time."]
+  ],
+  money: [
+    ["Contrarian","Stop saving money. Do this instead."],
+    ["Proof","I made $10,000 in 30 days with zero audience. Here’s the plan."],
+    ["Warning","If you earn under $5K a month, you’re making this mistake."],
+    ["Curiosity","Rich people never say this out loud. I will."],
+    ["Value","Three businesses you can start tonight with just your phone."],
+    ["Story","I got fired at 25. Two years later I replaced my salary."],
+    ["Contrarian","Your 9-to-5 is the most expensive thing you own."],
+    ["Curiosity","This boring business made $40K last month. Here’s how."],
+    ["Warning","Don’t start a business until you’ve watched this."],
+    ["Proof","I spent 90 days testing side hustles. Only one worked."]
+  ],
+  fitness: [
+    ["Contrarian","You don’t need more cardio to lose belly fat."],
+    ["Warning","Stop doing this exercise. It’s wrecking your lower back."],
+    ["Proof","I lost 12 pounds in 4 weeks without giving up carbs."],
+    ["Curiosity","The 5-minute habit that changed my body more than the gym."],
+    ["Value","One dumbbell. Ten minutes. A full-body workout."],
+    ["Contrarian","Abs aren’t made in the gym. Here’s what actually works."],
+    ["Story","I trained like this for 30 days. My trainer was shocked."],
+    ["Curiosity","Why your workouts aren’t working, and it’s not effort."],
+    ["Warning","If your shoulders hurt when you bench, watch this."],
+    ["Value","3 exercises that fix your posture in one week."]
+  ],
+  story: [
+    ["Open loop","I found out my best friend was lying to me for 3 years. Here’s how."],
+    ["Shock","He said “I do” and then my phone started buzzing."],
+    ["Open loop","The text I got at 2 AM changed my life forever."],
+    ["Twist","My landlord kept entering my apartment. So I set a trap."],
+    ["Cliffhanger","I almost didn’t read the letter. Then I saw the name."],
+    ["Shock","My boss thought I was asleep during the meeting. Big mistake."],
+    ["Twist","Everyone clapped. Then I played the recording."],
+    ["Open loop","This is the real reason I stopped talking to my sister."],
+    ["Cliffhanger","I followed the strange noise in my attic. I wasn’t alone."],
+    ["Twist","They laughed at my résumé. Now I’m their boss."]
+  ]
+};
+
+const $ = id => document.getElementById(id);
+let current = [], selected = -1;
+
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.opacity=1; clearTimeout(toast.t); toast.t=setTimeout(()=>t.style.opacity=0,1400); }
+
+async function copyText(text){
+  try { await navigator.clipboard.writeText(text); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy')}catch(_){}; ta.remove(); }
+  toast('Copied to clipboard');
+}
+
+function render(){
+  const box = $('results'); box.innerHTML='';
+  current.forEach(([tag,text],i)=>{
+    const card = document.createElement('div');
+    card.className = 'hook-card rounded-xl border border-line bg-panel p-4 flex gap-3 items-start cursor-pointer' + (i===selected?' active':'');
+    card.tabIndex = 0;
+    card.setAttribute('role','button');
+    card.innerHTML = `<div class="flex-1 min-w-0"><span class="text-xs font-semibold text-gold">${tag}</span><p class="mt-1 text-[17px] font-semibold leading-snug"></p></div>
+      <button class="copy shrink-0 rounded-lg border border-line px-3 py-2 text-sm font-semibold hover:border-hot hover:text-hot transition-colors" aria-label="Copy hook">Copy</button>`;
+    card.querySelector('p').textContent = text;
+    const pick = ()=>{ selected=i; $('pv-hook').textContent=text; $('pv-hook').classList.remove('pop'); void $('pv-hook').offsetWidth; $('pv-hook').classList.add('pop'); render(); };
+    card.addEventListener('click', pick);
+    card.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target===card){ e.preventDefault(); pick(); }});
+    card.querySelector('.copy').addEventListener('click', e=>{ e.stopPropagation(); copyText(text); const b=e.currentTarget; b.textContent='Copied'; setTimeout(()=>b.textContent='Copy',1200); });
+    box.appendChild(card);
+  });
+}
+
+function generate(){
+  current = shuffle(HOOKS[$('niche').value]).slice(0,5);
+  selected = 0;
+  $('pv-hook').textContent = current[0][1];
+  render();
+}
+
+function applyPlatform(){
+  const s = $('platform').value === 'shorts';
+  $('pv-top').innerHTML = s
+    ? '<span class="text-white font-bold text-xs">Shorts</span>'
+    : '<span class="text-white/60">Following</span><span class="text-white border-b-2 border-white pb-0.5">For You</span>';
+  $('pv-icon3').textContent = s ? '👎' : '🔖';
+  $('pv-l3').textContent = s ? 'Dislike' : 'Save';
+  $('pv-likes').textContent = s ? '842K' : '1.2M';
+  $('pv-user').textContent = s ? '@yourchannel' : '@yourhandle';
+  $('pv-note').textContent = s ? 'YouTube Shorts layout' : 'TikTok layout';
+}
+
+function setTab(t){
+  $('tab-gen').classList.toggle('hidden', t!=='gen');
+  $('tab-pro').classList.toggle('hidden', t!=='pro');
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    const on = b.dataset.tab===t;
+    b.classList.toggle('bg-hot/15', on); b.classList.toggle('text-white', on); b.classList.toggle('text-mute', !on);
+    b.setAttribute('aria-selected', on);
+  });
+  history.replaceState(null,'', t==='pro' ? '#pro' : '#generator');
+}
+
+$('gen').addEventListener('click', generate);
+$('platform').addEventListener('change', applyPlatform);
+$('niche').addEventListener('change', ()=>{ if(current.length) generate(); });
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click', ()=>setTab(b.dataset.tab)));
+setTab(location.hash==='#pro' ? 'pro' : 'gen');
+applyPlatform();
+</script>
+</body>
+</html>
